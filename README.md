@@ -1,0 +1,1 @@
+Depending on college time constraints this may or may not contain experimentation with pygame, and perhaps other engines.
