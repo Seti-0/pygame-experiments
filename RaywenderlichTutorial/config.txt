@@ -1,0 +1,13 @@
+
+######################################
+## Configuration for the Boxes game ##
+######################################
+
+# A multiplayer for the UI scale, for the sake
+# of differing resolutions.
+# This does not have to be a whole number
+scale = 2
+
+# The port and ip address of the server
+ip = localhost
+port = 8888
