@@ -12,10 +12,10 @@ loaded = False
 
 image_h = {}
 image_v = {}
+image_square = {}
 image_dot = None
 L = W = margin = 0
 font_small = font_medium = font_large = None
-
 
 def load():
     global loaded
@@ -27,10 +27,13 @@ def load():
 def reload():
 
     # For horizontal and vertical lines, and grid points
-    global image_h, image_v, image_dot
+    global image_h, image_v, image_dot, image_square
 
     image_dot = pygame.image.load("images/dot.png")
     dot_length = image_dot.get_size()[0]
+
+    image_square[BLUE] = pygame.image.load("images/square_blue.png")
+    image_square[RED] = pygame.image.load("images/square_red.png")
 
     image_h = {}
     image_h[NONE] = pygame.image.load("images/line.png")
@@ -56,17 +59,17 @@ def reload():
         image_v[state] = pygame.transform.rotate(image_h[state], -90)
 
     # Some hints for drawing
-    global L, W, dot_offset
+    global L, W, dot_offset, margin
 
     # Cell length and grid length
     L = size_h[0] + size_h[1]
     W = size_h[1]
 
     # The dot is a little larger than the actual grid point
-    dot_offset = size_h[1] - dot_length
+    dot_offset = int((size_h[1] - dot_length) / 2)
 
     # A general constant for margins
-    # margin = int(10 * config.scale)
+    margin = int(10 * config.scale)
 
     # Fonts. Large is used for score numbers.
     # Medium is used for the turn indicator, small is used to label

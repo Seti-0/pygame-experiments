@@ -86,8 +86,58 @@ class Client(ConnectionListener):
         else:
             limit = 6, 5
 
-        if i < 0 or i >= limit[0] or j < 0 or j >= limit[1]:
+        if i < 0 or i > limit[0] or j < 0 or j > limit[1]:
             print("Index out of range")
             return
 
         self.game.place_line(i, j, horizontal, color)
+
+    def Network_placeTile(self, data):
+        # Update the local copy of the board with info from the
+        # server. Ignore the message if its format is unfamiliar.
+        try:
+            color = str(data["color"])
+            i = int(data["i"])
+            j = int(data["j"])
+        except ValueError as e:
+            # A ValueError is expected if a conversion to int fails
+            print("Unable to parse placeTile message: " + str(e))
+            return
+        except NameError: 
+            # A NameError is expected if a key is missing
+            print("Unable to parse placeTile message: " + str(e))
+            return
+
+        if not color in [Color.BLUE, Color.RED]:
+            print("Unrecognized color: "+color)
+            return
+
+        if i < 0 or i > 5 or j < 0 or j > 5:
+            print("Index out of range")
+            return
+
+        self.game.place_tile(i, j, color) 
+
+    def Network_updateScore(self, data):
+        # Update the local copy of the score with info from the
+        # server. Ignore the message if its format is unfamiliar.
+        try:
+            local_score = int(data["localScore"])
+            remote_score = int(data["remoteScore"])
+        except ValueError as e:
+            # A ValueError is expected if a conversion to int fails
+            print("Unable to parse localScore message: " + str(e))
+            return
+        except NameError: 
+            # A NameError is expected if a key is missing
+            print("Unable to parse localScore message: " + str(e))
+            return
+
+        if local_score < 0:
+            print("Local score out of range:", local_score)
+            return
+
+        if remote_score < 0:
+            print("Remote score out of range", remote_score)
+
+        self.game.update_score(local_score, remote_score) 

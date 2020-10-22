@@ -10,7 +10,7 @@ class StatusScreen():
         Client.DISCONNECTED: "Disconnected"
     }
 
-    def __init___(self, target: Client):
+    def __init__(self, target: Client):
         self.target = target
 
     def draw(self, screen):

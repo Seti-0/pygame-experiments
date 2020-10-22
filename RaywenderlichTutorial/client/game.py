@@ -36,6 +36,7 @@ class Game():
         # actual the state of the game, which is stored server side
         self.colors_h = [[Color.NONE for y in range(7)] for x in range(6)]
         self.colors_v = [[Color.NONE for y in range(6)] for x in range(7)]
+        self.colors_square = [[Color.NONE for y in range(6)] for x in range(6)]
 
         # Red gets the first turn
         self.has_turn = self.local_color == Color.RED
@@ -59,6 +60,29 @@ class Game():
             self.has_turn = False
         else:
             self.has_turn = True
+
+    def place_tile(self, i: int, j: int, color):
+
+        # This method is called by the client when
+        # the server informs it that a new tile has been
+        # placed
+
+        # Separating this action from the place_line action
+        # is inefficient, but simpler for now since it means the
+        # logic regarding checking tiles can be kept in one place
+
+        self.colors_square[i][j] = color
+
+    def update_score(self, local_score, remote_score):
+
+        # This method is called by the client when the server
+        # informs it that the score has changed. Again, separating
+        # this message from the place_line & place_tile is 
+        # inefficient, but simpler for now.
+
+        self.local_score = local_score
+        self.remote_score = remote_score
+        
 
     def update(self, mouse_up: bool):
         # Drawing is handled in the "draw" method.
@@ -154,7 +178,22 @@ class Game():
         margin = resources.margin
         dot_offset = resources.dot_offset
 
-        # Horizontal lines first. 
+        # Squares
+
+        for i in range(6):
+            for j in range(6):
+
+                state = self.colors_square[i][j]
+
+                if state != Color.NONE:
+
+                    image = resources.image_square[state]
+
+                    x = margin + (i * L) + W
+                    y = margin + (j * L) + W
+                    screen.blit(image, [x, y])
+
+        # Horizontal lines. 
         
         for i in range(6):
             for j in range(7):
@@ -185,7 +224,7 @@ class Game():
                 
                 if state == resources.NONE and self.hover_v:
                     if self.hover_i == i and self.hover_j == j:
-                        state = resources.NONE
+                        state = resources.HOVER
                 
                 image = resources.image_v[state]
 
@@ -232,20 +271,32 @@ class Game():
 
         # The score:
 
+        if self.local_color == Color.BLUE:
+            local_name = "Blue score:"
+            remote_name = "Red score:"
+            local_color = blue
+            remote_color = red
+        else:
+            local_name = "Red score:"
+            remote_name = "Blue score:"
+            local_color = red
+            remote_color = blue
+
         y += int(32 * config.scale)
-        label = resources.font_small.render("Blue score:", 1, white)
+        label = resources.font_small.render(local_name, 1, white)
         screen.blit(label, [x, y])
 
         y += int(16 * config.scale)
-        label = resources.font_large.render("3", 1, blue)
+        label = resources.font_large.render(str(self.local_score), 1, local_color)
         screen.blit(label, [x, y])
 
         x = int(360 * config.scale)
         y -= int(16 * config.scale)
-        label = resources.font_small.render("Red score:", 1, white)
+        label = resources.font_small.render(remote_name, 1, white)
         screen.blit(label, [x, y])
 
+        # TODO adjust gap for double digits
         x = int(400 * config.scale)
         y += int(16 * config.scale)
-        label = resources.font_large.render("9", 1, red)
+        label = resources.font_large.render(str(self.remote_score), 1, remote_color)
         screen.blit(label, [x, y])

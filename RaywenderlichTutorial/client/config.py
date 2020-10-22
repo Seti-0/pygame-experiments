@@ -1,23 +1,23 @@
 import re
 import os
+import sys
 
-# Config file location
-# (It will be generated there if not found)
-_path = "config.txt"
+# This currently isn't actually printed anywhere
+_help_text = """
+Command arguments that can be used with Boxes:
 
-# Contents of the config file on generation
-_default_content = """
-######################################
-## Configuration for the Boxes game ##
-######################################
+    --scale NUMBER
+            Scale the GUI by an amount.
 
-# A multiplier for the UI scale.
-# This does not have to be a whole number.
-scale = 1
+    --ip IP
+            Specify an ip for joining. Defaults to localhost.
+    
+    --port PORT
+            Specify a port for joining or hosting. Defaults to 8888.
 
-# The port and ip address of the server.
-ip = localhost
-port = 8888
+    --host
+            Host a server. If this flag is not present, the app will
+            attempt to join instead.
 """
 
 # Only read from the config file once
@@ -27,6 +27,7 @@ loaded = False
 scale = 1
 ip = "localhost"
 port = 8888
+host = False
 
 def load():
     global loaded
@@ -36,62 +37,36 @@ def load():
     reload()
 
 def reload():
-    global scale, ip, port
+    global scale, ip, port, host
+    names = ["scale", "ip", "port", "host"]
+
+    values = dict()
+    next_is_key = False
+    current_key = None
+
+    for i in range(1, len(sys.argv)):
+        arg = sys.argv[i]
+
+        if len(arg) > 2 and arg[0:2] == "--":
+            param = arg[2:]
+            if not param in names:
+                print("Unrecognized parameter: '", param, "'")
+            else:
+                values[param] = None
+                current_key = param
+
+        elif current_key is not None:
+            values[current_key] = arg.strip()
+
+        else:
+            print("Unexpected cmd line argument: '", arg, "'")
+
+        scale = float(values.get("scale", scale))
+        ip = values.get("ip", ip)
+        port = int(values.get("port", port))
+        host = "host" in values
+
     
-    if os.path.exists(_path) and os.path.isfile(_path):
-        # If the file exists, try open it
-        try:
-            config = open(_path)
-        except IOError as e:
-            print("Error opening config file:")
-            print(e)
-            config = None
-    else:
-        # If it does not, try create it
-        try:
-            config = open(_path, "w+")
-            config.write(_default_content)
-        except IOError as e:
-            print("Unable to create config file")
-            print(e)
-            config = None
 
-    if config is not None:
 
-        # The regex pattern for a single line
-        pattern = re.compile(""
-            + r"^\s*" # Allow whitespace before the line
-            + r"([^\s#=]+)" # Property name
-            + r"\s*=\s*" # Equals (allowing for whitespace)
-            + r"([^\n#]+)" # Property value
-            )
-
-        properties = {}
-
-        # Extract things that look like properties
-        lines = config.readlines()
-        for line in lines:
-            match = pattern.match(line)
-            if match is not None:
-                properties[match.group(1)] = match.group(2)
-
-        # This is v. important! Aside from the good 
-        # practice in not holding onto the file after we're
-        # done with it, it also ensures that any buffered
-        # text is actually written.
-        config.close()
-
-        # Check properties that are actually used
-        # Supply defaults if they cannot be read
-
-        def parse(selector, key: str, properties: dict, default):
-            try:
-                return selector(properties[key])
-            except:
-                print(f"Failed to read \"{key}\" from config file")
-                return default
-
-        scale = parse(float, "scale", properties, scale)
-        port = parse(int, "port", properties, port)
-        ip = parse(str, "ip", properties, ip)
 

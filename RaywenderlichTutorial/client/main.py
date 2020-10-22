@@ -59,20 +59,25 @@ mouse_up_lock = False
 def check_events():
     global mouse_up, mouse_up_lock
 
+    mouse_up_recieved = False
     for event in pygame.event.get():
     
         # This fires if the quit button is pressed
         if event.type == pygame.QUIT: # pylint: disable=no-member
             exit(0)
-    
-        # Note: this seems to fire multiple times per mouse
-        # click, so to avoid awkwardness the mouse_up_lock variable is used
+
         if event.type == pygame.MOUSEBUTTONUP: # pylint: disable=no-member
-            mouse_up = not mouse_up_lock
-            mouse_up_lock = True
-        else:
-            mouse_up = False
-            mouse_up_lock = False   
+            mouse_up_recieved = True
+    
+    # This is an attempt to m
+    # ake sure that 
+    # a mouse up event only occurs once per mouse-up
+    if mouse_up_recieved: 
+        mouse_up = not mouse_up_lock
+        mouse_up_lock = True
+    else:
+        mouse_up = False
+        mouse_up_lock = False   
 
 ###############
 ## Main Loop ##
